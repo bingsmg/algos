@@ -104,3 +104,66 @@ public int findCircleNum(int[][] isConnected) {
     return ans;
 }
 ```
+
+## 417. 太平洋大西洋水流问题
+
+[417. 太平洋大西洋水流问题](https://leetcode.cn/problems/pacific-atlantic-water-flow/)
+
+### 题意分析
+
+<img src="https://assets.leetcode.com/uploads/2021/06/08/waterflow-grid.jpg" alt="img" style="zoom:50%;" />
+
+分析题意，即希望我们判断二维数组中的每一个点，判断该点能否向上或向左为最大值，并且向右或向下为最大值，如果我们按照这个思路遍历，复杂度较高，且目前的题解没有这么去实现的。
+
+另一种方案是，我们从海洋的边界向内扩展，左边界和上边界属于太平洋，右边界和下边界属于大西洋，从而我们确保所有能流向海洋的点都被标记。最后判断每一个点，是不是通往太平洋和大西洋是否都能流向。
+
+针对每一个点的遍历，即 dfs 函数，只保证水可以从这个点流到海洋，代码如下：
+
+```java
+private void dfs(boolean[][] ocean, int r, int c) {
+    if (ocean[r][c]) return;
+    ocean[r][c] = true;
+    for (int[] direction : directions) {
+        // new row、new column
+        int nr = r + direction[0], nc = c + direction[1];
+        if (nr >= 0 && nr < m && nc >= 0 && nc < n 
+            && heights[nr][nc] >= heights[r][c]) {
+            dfs(ocean, nr, nc);
+        }
+    }
+
+}
+```
+
+### 题解
+
+```java
+public List<List<Integer>> pacificAtlantic(int[][] heights) {
+    List<List<Integer>> res = new ArrayList<>();
+    this.m = heights.length;
+    this.n = (m == 0) ? 0 : heights[0].length;
+    this.heights = heights;
+    // 太平洋
+    boolean[][] pacific = new boolean[m][n];
+    // 大西洋
+    boolean[][] atlantic = new boolean[m][n];
+
+    for (int i = 0; i < m; i++) {
+        dfs(pacific, i, 0);
+        dfs(atlantic, i, n - 1);
+    }
+    for (int j = 0; j < n; j++) {
+        dfs(pacific, 0, j);
+        dfs(atlantic, m - 1, j);
+    }
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (pacific[i][j] && atlantic[i][j]) {
+                res.add(List.of(i, j));
+            }
+        }
+    }
+    return res;
+}
+```
+
