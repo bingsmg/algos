@@ -167,6 +167,56 @@ public List<List<Integer>> pacificAtlantic(int[][] heights) {
 }
 ```
 
+## 130.被围绕的区域
+
+[130. 被围绕的区域](https://leetcode.cn/problems/surrounded-regions/)
+
+### 题意分析
+
+给定了一个 m x n 的矩阵，单元格之间可以用 'X' 水平或者垂直相连，但是边界的 '0' 不能连，让你返回所有连接后的矩阵。
+
+刚开始分析就是针对每一个为 '0' 的点进行 dfs，那么如果发现最后 dfs 到了边界上，就需要回溯处理的所有过程，想着想着绕进去了，不知道这个应该怎么全回溯了。其实我们发现，我们只需要从边界开始处理 '0' 的点，dfs 这些点就可以了。
+
+我们只 dfs 边界的点，然后用 visited 数组标识从边界 dfs 到的所有点，最后将 visited[i]\[j] 为 false 的全置为 X 即可。
+
+> 可以发现，很多时候需要有反向思维，一味地保持一种思考方式反而难以解决问题。
+
+### 题解
+
+```java
+class Solution {
+    public void solve(char[][] board) {
+        int m = board.length, n = m == 0 ? 0 : board[0].length;
+        boolean[][] visited = new boolean[m][n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (!(i == 0 || i == m - 1 || j == 0 || j == n - 1) 
+                    || board[i][j] != 'O') continue;
+                dfs(board, i, j, m, n, visited);
+            }
+        }
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (board[i][j] == 'O' && !visited[i][j]) board[i][j] = 'X';
+            }
+        }
+    }
+
+    private void dfs(char[][] board, int i, int j, int m, int n, boolean[][] visited) {
+        if (i < 0 || i == m || j < 0 || j == n || visited[i][j]) return;
+        if (board[i][j] == 'X') return;
+        visited[i][j] = true;
+        dfs(board, i - 1, j, m, n, visited);
+        dfs(board, i, j + 1, m, n, visited);
+        dfs(board, i + 1, j, m, n, visited);
+        dfs(board, i, j - 1, m, n, visited);
+    }
+}
+```
+
+
+
 
 
 # backtrack
