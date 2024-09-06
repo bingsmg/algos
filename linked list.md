@@ -499,3 +499,134 @@ public ListNode findM(ListNode head) {
 ## LC147.对链表进行插入排序
 
 [147. 对链表进行插入排序](https://leetcode.cn/problems/insertion-sort-list/)
+
+数组插入排序的思想是拿当前遍历到的元素，从它之前的元素从后往前比较并交换，但是单链表永远只能从前往后走，但是我们不需要移动其他所有元素，所以我们在寻找插入位置的时候永远从前往后寻找，为了防止待插入的是链表头结点，所以我们仍然引入 dummy 节点来返回最后的单链表头。
+
+```java
+public ListNode insertionSortList(ListNode head) {
+    if (head == null || head.next == null) return head;
+	ListNode dummy = new ListNode(-1);
+    dummy.next = head;
+    ListNode cur = head;
+    while (cur.next != null) {
+        if (cur.next.val > cur.val) cur = cur.next;
+        else {
+            ListNode tmp = cur.next; // 记录需要插入的节点
+            cur.next = cur.next.next; // 先从原链表删除
+            ListNode p = dummy; // 从头开始找
+            while (p != cur && p.next.val < tmp.val) {
+                p = p.next;
+            }
+            tmp.next = p.next;
+            p.next = tmp;
+        }
+    }
+    return dummy.next;
+}
+```
+
+## LC234.回文链表
+
+[234. 回文链表](https://leetcode.cn/problems/palindrome-linked-list/)
+
+回文链表即 `1->2->2->1` 或 `1->2->3->2->1` 这样的俩表，一种简单的做法是，放入列表，然后对比第一个元素和最后一个，第二个和倒数第二个...这样的话空间复杂度为 O(n)，有没有更优的写法呢？
+
+其实和重排链表一样，我们只需要找到链表的中点，然后将后半部分反转，然后两个指针同时遍历第一个和第二个链表的每一个节点，如果发现都一样，则说明是回文的。这样又会引出一个问题，如何找到中点呢，我们需要判断奇偶吗？找重点肯定是快慢指针，但是快慢指针要找到合适的 first 和 second 的链表头其实并不好找，可以拿奇偶数链表节点的链表来举例看看：1-2-3-4-5 快慢指针找到的 slow 为 3，slow 的 pre 为 2；1-2-3-4 找到的 slow 为 3，slow 的 pre 为 2。发现其实并不能通用，那有什么好的办法呢？借助虚拟头在原链表前加一个元素，让 slow.next 最终指向的一定是 second 链表的头，其实还有一种方式，我们不需要快慢指针，但是在快慢指针的判断上下文章
+
+```java
+public ListNode findM(ListNode head) {
+    if (head == null || head.next == null) return head;
+    ListNode slow = head, fast = head;
+    while (fast.next != null && fast.next.next != null) { // 微调判断条件
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    return slow;
+    // 1-2-3 return 2
+    // 1-2-3-4 return 2
+    // 1-2 return 1
+    // 验证通过
+}
+```
+
+```java
+public boolean isPalindrome(ListNode head) {
+    ListNode fist = head, sencond = findM(head).next;
+    ListNode p = first, q = second;
+    // ...断开与 q 的连接并 reverseL(q)
+    while (p != null && q != null) { // ERROR! 不要同时判断 p、q 指针
+        if (p.val != q.val) return false;
+    }
+    return p == q; // ? right? No
+}
+
+```
+
+发现还是有问题啊，找到了又能怎样，如果是奇数，你得断开 mid 和前一个元素的连接啊......兜兜转转又会原处。
+那真的必须只有判断奇偶才可以了吗？
+
+其实脑子想多了啊！想多了啊！想多了啊！我们肯定如果前半段多，也只会多一个相同的元素，即 mid。所以我们不需要再主判断里同时更新两个指针啊
+
+```java
+public boolean isPalindrome(ListNode head) {
+    ListNode first = head,second = null;
+    ListNode mid = findM(head);
+    second = mid.next;
+    mid.next = null;
+    second = reverseL(second);
+    ListNode p = first, q = second;
+    while (q != null) {
+        if (p.val != q.val) return false;
+        else {
+            p = p.next;
+            q = q.next;
+        }
+    }
+    return true;
+}
+```
+
+## LC142.环形链表II
+
+[142. 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/)
+
+给定一个链表，如果有环，返回环的入口节点。第一件事是判断环，怎么样可以判断有环？快慢指针，那么有环快指针一定会和慢指针相遇，相遇的节点有什么规律？相遇点到环起点距离与链表头到环起点位置相同。
+
+```java
+public ListNode detectCycle(ListNode head) {
+	ListNode slow = head, fast = head, p = head;
+    while (fast != null && fast.next != null && fast != slow) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    if (slow != fast) return null; // 无环
+    while (fast != p) {
+        p = p.next;
+        fast = fast.next;
+    }
+    return p;
+}
+```
+
+第一版代码写完了，审查了好几遍，发现没问题，但是 lc 上提交发现代码输出结果和自己想的不一样，但是按照题目要求自己脑子里模拟发现就应该是正确结果啊，问题出在哪了呢？
+
+我的初始赋值为 `fast = slow = head`，我吐了，这导致循环压根进不去，修改为以下：
+
+```java
+public ListNode detectCycle(ListNode head) {
+    if (head == null || head.next == null) return null;
+    ListNode slow = head, fast = head, p = head;
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+        if (slow == fast) break;
+    }
+    if (slow != fast) return null; // 无环
+    while (fast != p) {
+        p = p.next;
+        fast = fast.next;
+    }
+    return p;
+}
+```
+
