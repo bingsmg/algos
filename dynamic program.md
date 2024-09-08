@@ -179,7 +179,81 @@ public int maxSubArray(int[] nums) {
 
 子数组的乘积是不是按照子数组的和来处理就可以了呢？不行！因为负负得正，你不能只记录当前的最大乘积，因为如果当前处理元素之前有一个特别小的负数，在当前元素为负值的时候，就会得到最大值。
 
+有时候我们会定义 dp[i] 表示前 i 个元素得到的最值，有时候我们定义以 nums[i] 结尾的子数组的最值，那么这个定义有什么区别呢？怎么理解并正确选择呢？其实核心在于前 i 个元素的最值在经过中间阶段后，对后续的元素的 dp 结果有没有意义，如果是子数组类型的问题，0 元素之前的无论多少元素在包含 0 元素之后，其余最值都无意义，对后续没有参考价值，因为如果包含了 0 元素，那么结果已经被 0 主导了，所以**子数组类的问题，应该都定义为以元素 i 结尾的子数组的最值，判断自己单独成一段还是加入前一个元素对应的一段**。
+
+![image-20240908172634649](dynamic program/image-20240908172634649.png)
+
+关键点就是这句话：==“由于存在负数，那么会导致最大的变最小的，最小的变最大的。因此还需要维护当前最小值imin。”==
+
+```java
+public int maxProduct(int[] nums) {
+	int n = nums.length;
+    // dp[i][0] 以 i 结尾子数组最小值 dp[i][1] 以 i 结尾子数组最大值
+    int[][] dp = new int[n][2];
+    dp[0][0] = nums[0];
+    dp[0][1] = nums[0];
+    
+    int ans = dp[0][1];
+    
+    for (int i = 1; i < n; i++) {
+        dp[i][0] = Math.min(dp[i - 1][1] * nums[i], Math.min(dp[i - 1][0] * nums[i], nums[i]));
+        dp[i][1] = Math.max(dp[i - 1][0] * nums[i], Math.max(dp[i - 1][1] * nums[i], nums[i]));
+        ans = Math.max(ans, dp[i][1]);
+    }
+    return ans;
+}
+```
+
+
+
 ### LC2708.一个小组最大的实力值
 
 [2708. 一个小组的最大实力值](https://leetcode.cn/problems/maximum-strength-of-a-group/)
+
+本道题目不是子数组了，是可以选部分元素，然后得到所选小组的最大实力值。但是因为要得到的是乘积，所以存在负数的话会导致最大的变最小的，最小的变最大的，因此还需要维护最小最大两个最值。
+
+```java
+public long maxStrength(int[] nums) {
+	int n = nums.length;
+    // dp[i][0] 前 i 个元素能选到的最小值，dp[i][1] 前 i 个元素能选到的最大值
+    long[][] dp = new long[n][2];
+    dp[0][0] = nums[0];
+    dp[0][1] = nums[0];
+    for (int i = 1; i < n; i++) {
+        long mx1 = dp[i - 1][0] * nums[i], mx2 = dp[i - 1][1] * nums[i];
+        dp[i][0] = min(mx1, mx2, dp[i - 1][0], nums[i]);
+        dp[i][1] = max(mx1, mx2, dp[i - 1][1], nums[i]);
+    }
+    return dp[n - 1][1];
+}
+private long max(long...args) {
+    long ans = args[0];
+    for (long num : args) {
+        if (num > ans) ans = num;
+    }
+    return ans;
+}
+private long min(long...args) {
+    long ans = args[0];
+    for (long num : args) {
+        if (num < ans) ans = num;
+    }
+    return ans;
+}
+```
+
+当然可以空间压缩，因为 dp[i] 只与 dp[i - 1] 旧值有关系，完全可以压缩到 O(1) 空间复杂度。
+
+```java
+public long maxStrength(int[] nums) {
+	int n = nums.length;
+    long min = nums[0], max = nums[0];
+    for (int i = 1; i < n; i++) {
+        long mx1 = min * nums[i], mx2 = max * nums[i];
+        min = Math.min(Math.min(mx1, mx2), Math.min(min, nums[i]));
+        max = Math.max(Math.max(mx1, mx2), Math.max(max, nums[i]));
+    }
+    return max;
+}
+```
 
