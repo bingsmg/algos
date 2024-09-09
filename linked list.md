@@ -630,3 +630,191 @@ public ListNode detectCycle(ListNode head) {
 }
 ```
 
+## LC138.随机链表的复制
+
+[138. 随机链表的复制](https://leetcode.cn/problems/copy-list-with-random-pointer/)
+
+链表如何复制呢？即遍历每个原链表的节点，然后根据值生成一个新的链表的节点，然后复制链表节点的指向关系。
+
+```java
+public Node copyRandomList(Node head) {
+	if (head == null) return null;
+   	Node dummy = new Node(-1);
+    Node pre = dummy, cur = head;
+    Map<Integer, Node> map = new HashMap<>();
+    while (cur != null) {
+        Node node = new Node(cur.val);
+        pre.next = node;
+        pre = pre.next;
+        cur = cur.next;
+        map.put(node.val, node);
+    }
+    Node p = head, q = dummy.next;
+    while (p != null) {
+        if (p.random != null) q.random = map.get(p.random.val);
+        p = p.next;
+        q = q.next;
+    }
+    return dummy.next;
+}
+```
+
+这种解法针对链表节点值都不一样的链表是有效的，总能正确复制对应的指向关系，但如果链表值有重复的，那么 map 就不能正确记录每一个值和节点的对应关系，就不能解决问题。看了题解发现，其实这种思考方式也能解决问题，但是核心在于你需要记录的不是值和节点的对应关系，而应该记录节点和节点的对应关系。题解用递归解决：
+
+```java
+Map<Node, Node> map = new HashMap<Node, Node>();
+
+public Node copyRandomList(Node head) {
+    if (head == null) return null;
+    if (!map.containsKey(head)) {
+        Node headNew = new Node(head.val);
+        map.put(head, headNew);
+        headNew.next = copyRandomList(head.next);
+        headNew.random = copyRandomList(head.random);
+    }
+    return map.get(head);
+}
+```
+
+那还有什么思路吗？
+
+![image-20240909095059328](linked list/image-20240909095059328.png)
+
+先将原链表的每一个节点对应的拷贝作为原节点的下一个节点，再遍历原链表节点让 random 指向成功对应，最后断开原链表和拷贝链表之间的关联。
+
+```java
+public Node copyRandomList(Node head) {
+    if (head == null) return null;
+    Node cur = head;
+    while (cur != null) {
+        Node aux = cur.next;
+        Node node = new Node(cur.val);
+        node.next = aux;
+        cur.next = node;
+        cur = aux;
+    }
+    Node p = head, q = null;
+    while (p != null) {
+        Node aux = p.next.next;
+        p.next.random = (p.random == null ? null : p.random.next);
+        p = aux;
+    }
+    Node newHead = head.next;
+    p = head;
+    q = newHead;
+    while (q != null) {
+        Node aux = q.next;
+        p.next = aux;
+        q.next = (aux == null ? null : aux.next);
+        p = p.next;
+        q = q.next;
+    }
+    return newHead;
+}
+```
+
+## LC23.合并 K 个升序链表
+
+[23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/)
+
+给出一个链表数组，每个链表都已经升序排序，现在让你合并所有链表到一个升序链表中。
+
+如果是两个链表，你可以用两个指针，现在是 k 个链表，而且，k 最大可能是 10^4，那这样肯定无法用指针去处理，那如何解决这么多个链表的合并有序问题呢？**优先队列**，最小堆，我们让每个链表的头都进堆，每次都出一个最小的，然后将出堆的链表的下一个链表节点入堆，每次出最小，最终让堆中的全部元素出堆。
+
+```java
+public ListNode mergeKLists(ListNode[] lists) {
+    ListNode dummy = new ListNode(-1, null);
+    int n = lists.length;
+    if (n == 0) return null;
+    PriorityQueue<ListNode> minHeap = new PriorityQueue<>((node1, node2) -> node1.val - node2.val);
+    for (ListNode head : lists) {
+        minHeap.offer(head);
+    }
+    ListNode p = dummy;
+    while (!minHeap.isEmpty()) {
+        ListNode node = minHeap.poll();
+        p.next = node;
+        p = p.next;
+        if (node.next != null) minHeap.offer(node.next);
+    }
+    return dummy.next;
+}
+```
+
+当然还有一种思想就是归并排序，但是因为归并一般作用于两个链表，所以是将第一个链表和第二个链表归并，然后将该合并完的链表与第三个链表归并，以此类推。和数组的思想有些类似。
+
+```java
+public ListNode mergeKLists(ListNode[] lists) {
+    int n = lists.length;
+    if (n == 0) return null;
+    return mklists(lists, 0, n - 1);
+}
+
+private ListNode mklists(ListNode[] lists, int lo, int hi) {
+    int len = hi - lo + 1;
+    if (len == 0) return null;
+    if (len == 1) return lists[lo];
+    int interval = (len - 1) / 2; // 防止 [0,1] 死循环
+    ListNode left = mklists(lists, lo, lo + interval);
+    ListNode right = mklists(lists, lo + interval + 1, hi);
+    return merge(left, right);
+}
+
+private ListNode merge(ListNode left, ListNode right) {
+    ListNode dummy = new ListNode(-1);
+    ListNode p = left, q = right, cur = dummy;
+    while (p != null && q != null) { // 链表直接退出，最后一步链接即可
+        if (p.val <= q.val) {
+            cur.next = p;
+            p = p.next;
+        } else {
+            cur.next = q;
+            q = q.next;
+        }
+        cur = cur.next;
+    }
+    cur.next = (p != null ? p : q);
+    return dummy.next;
+}
+```
+
+## LC817.链表组件
+
+[817. 链表组件](https://leetcode.cn/problems/linked-list-components/)
+
+问你组件的个数，其实就是判断符合链表值在 nums 中的连续子链表的个数，我们可以基于分组循环的思想实现该题解。
+
+```java
+i, n = 0, len(nums)
+while i < n:
+    start = i
+    while i < n and ...:
+        i += 1
+    # 从 start 到 i-1 是一段
+    # 下一段从 i 开始，无需 i+=1
+```
+
+扩展到链表上思想是一样的：
+
+```java
+public int numComponents(ListNode head, int[] nums) {
+    Set<Integer> set = new HashSet<>();
+    for (int num : nums) set.add(num);
+    ListNode p = head;
+    int ans = 0;
+    while (p != null) {
+        ListNode q = p;
+        int len = 0;
+        while (q != null && set.contains(q.val)) {
+            len++;
+            q = q.next;
+        }
+        if (q == p) len = 0;
+        ans += (len > 0 ? 1 : 0);
+        p = (q == null ? null : q.next);
+    }
+    return ans;
+}
+```
+
+该题做完 Leetcode 400 题打卡一波。
