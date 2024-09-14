@@ -818,3 +818,175 @@ public int numComponents(ListNode head, int[] nums) {
 ```
 
 该题做完 Leetcode 400 题打卡一波。
+
+## LC.链表求和
+
+[面试题 02.05. 链表求和](https://leetcode.cn/problems/sum-lists-lcci/)
+
+链表求和和数组求和其实是类似的逻辑，主要是针对加法要处理进位 carry 的问题，我们让两个指针分别指向待相加的两个值的个位，然后依次相加并更新到十位、百位...什么时候处理结束呢？肯定是当位数少的值已经处理完了，然后进位也得处理完，就得到了最终结果。
+
+那如何得到每一位的值呢？其实进位就是 `(a + b) / 10`，而本轮的结果为 `(a + b) % 10`。因为要返回最终结果，所以我们可以借助一个新链表来处理，更简单，当然应该也可以共用原来的一个链表。
+
+```java
+public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+    ListNode dummy = new ListNode(-1);
+    ListNode p = l1, q = l2, cur = dummy;
+    int carry = 0;
+    while (p != null || q != null || carry != 0) {
+        if (p == null && q == null) {
+            cur.next = new ListNode(carry);
+            break;
+        }
+        int v1 = (p == null ? 0 : p.val), v2 = (q == null ? 0 : q.val);
+        int tmp = v1 + v2 + carry;
+        int v = tmp % 10;
+        carry = tmp / 10;
+        cur.next = new ListNode(v);
+        p = (p == null ? null : p.next);
+        q = (q == null ? null : q.next);
+        cur = cur.next;
+    }
+    return dummy.next;
+}
+```
+
+## LC.分割链表
+
+[面试题 02.04. 分割链表](https://leetcode.cn/problems/partition-list-lcci/)
+
+要根据某一个值，将链表中小于该值的全放在该值左边，大于等于该值的放在该值右边，其实思想很简单，遍历每一个值即可，如果发现是小于的就一直往后遍历，如果碰到大于的值了，用一个新链表来保存起来，然后让当前处理的指向下一个，因为要处理当前大于，则把前一个节点和后一个节点连起来这种情况，我们遍历的时候直接判断   cur.next 即可。
+
+```java
+public ListNode partition(ListNode head, int x) {
+    ListNode dummy = new ListNode(-1);
+    ListNode aux = new ListNode(-1);
+    dummy.next = head;
+    ListNode cur = dummy, p = aux;
+    while (cur.next != null) {
+        if (cur.next.val < x) cur = cur.next;
+        else {
+            p.next = cur.next;
+            cur.next = cur.next.next;
+            cur = cur.next;
+            p = p.next;
+        }
+    }
+    cur.next = aux.next;
+    return dummy.next;
+}
+```
+
+## LC725.分割链表
+
+[725. 分隔链表](https://leetcode.cn/problems/split-linked-list-in-parts/)
+
+将链表分隔为 `k` 个连续的部分。每部分的长度应该尽可能的相等：任意两部分的长度差距不能超过 1 。这可能会导致有些部分为 null 。排在前面的部分的长度应该大于或等于排在后面的长度。
+
+链表长度 n 和分割为 k 部分两者的关系对这道题影响是最关键的，我们假设链表长度为 3，举例如下：
+
+```
+k = 1: 1 0 0
+k = 2: 1 1 0
+k = 3: 1 1 1 
+k = 4: 2 1 1 
+k = 5: 2 2 1
+k = 6: 2 2 2
+k = 7: 3 2 2
+```
+
+链表总是分为 n / k 部分，前面的分割链表每个最多多一个，一共多 n % k 个
+
+```java
+ListNode p = head;
+int n = 0;
+while (p != null) {
+    n++;
+    p = p.next;
+}
+```
+
+在得到链表的长度后，开始计算和 k 的关系：
+
+```java
+int interval = n > k ? n / k : 1; // 一组最少几个链表节点
+int tmp = n > k ? n % k : 0; // 每组最少分配完后
+```
+
+在最后你需要返回一个 ListNode[] 最多也就是 k 组，所以：
+
+```java
+public ListNode[] splitListToParts(ListNode head, int k) {
+    ListNode[] ans = new ListNode[k];
+    ListNode p = head;
+    int n = 0;
+    while (p != null) {
+        n++;
+        p = p.next;
+    }
+
+    int interval = n > k ? n / k : 1; // 一组最少几个链表节点
+    int tmp = n > k ? n % k : 0; // 每组最少分配完后
+    p = head;
+
+    for (int i = 0; i < k; i++) {
+        int j = interval; // 每段间隔为 j
+        ListNode start = p;
+        while (--j > 0) {
+            p = p.next;
+        }
+        // 如果还多余了，就在前面补，一次最多补一个节点
+        if (tmp-- > 0) p = p.next;
+        if (p == null) ans[i] = null;
+        else {
+            ListNode q = p.next;
+            p.next = null; // 分段链表
+            p = q;
+            ans[i] = start;
+        }
+    }
+    return ans;
+}
+```
+
+经 GPT 优化如下，其实就是直接计算每一段应该有多长：
+
+```java
+public ListNode[] splitListToParts(ListNode head, int k) {
+    ListNode[] ans = new ListNode[k];
+    ListNode p = head;
+    int n = 0;
+    
+    // 计算链表长度
+    while (p != null) {
+        n++;
+        p = p.next;
+    }
+
+    int interval = n / k; // 每组最少包含的节点数量
+    int extra = n % k;    // 需要分配的多余节点数
+    p = head;
+
+    for (int i = 0; i < k; i++) {
+        ListNode start = p; // 当前部分的起始节点
+        int currentPartSize = interval + (extra-- > 0 ? 1 : 0); // 当前部分的实际大小
+        
+        // 遍历当前部分
+        for (int j = 1; j < currentPartSize && p != null; j++) {
+            p = p.next;
+        }
+
+        // 断开链表，准备下一部分
+        if (p != null) {
+            ListNode next = p.next;
+            p.next = null;
+            p = next;
+        }
+        
+        // 将当前部分加入结果
+        ans[i] = start;
+    }
+    
+    return ans;
+}
+```
+
