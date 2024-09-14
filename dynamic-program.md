@@ -4,7 +4,7 @@
 
 reference link:
 
-MIT：https://youtu.be/OQ5jsbhAv_M?si=JiwQsNpbsaIkuhIm
+MIT：[MIT课程](https://youtu.be/OQ5jsbhAv_M?si=JiwQsNpbsaIkuhIm)
 
 动态规划 = 递归 + 记录状态
 
@@ -118,11 +118,7 @@ class Solution {
 
 ## 股票
 
-
-
 ## 背包
-
-
 
 ## 子数组和
 
@@ -140,7 +136,7 @@ class Solution {
 
 ```java
 public int maxSubArray(int[] nums) {
-	int n = nums.length;
+    int n = nums.length;
     // dp[i] 表示以 nums[i] 结尾的最大子数组和
     int[] dp = new int[n];
     dp[0] = (nums[0] > 0 ? nums[0] : 0);
@@ -158,7 +154,7 @@ public int maxSubArray(int[] nums) {
 
 ```java
 public int maxSubArray(int[] nums) {
-	int n = nums.length;
+    int n = nums.length;
     int[] dp = new int[n];
     dp[0] = nums[0]; // 子数组必须包含一个元素
     int ans = dp[0];
@@ -183,13 +179,13 @@ public int maxSubArray(int[] nums) {
 
 有时候我们会定义 dp[i] 表示前 i 个元素得到的最值，有时候我们定义以 nums[i] 结尾的子数组的最值，那么这个定义有什么区别呢？怎么理解并正确选择呢？其实核心在于前 i 个元素的最值在经过中间阶段后，对后续的元素的 dp 结果有没有意义，如果是子数组类型的问题，0 元素之前的无论多少元素在包含 0 元素之后，其余最值都无意义，对后续没有参考价值，因为如果包含了 0 元素，那么结果已经被 0 主导了，所以**子数组类的问题，应该都定义为以元素 i 结尾的子数组的最值，判断自己单独成一段还是加入前一个元素对应的一段**。
 
-![image-20240908172634649](dynamic program/image-20240908172634649.png)
+![image-20240908172634649](dynamic-program/image-20240908172634649.png)
 
 关键点就是这句话：==“由于存在负数，那么会导致最大的变最小的，最小的变最大的。因此还需要维护当前最小值imin。”==
 
 ```java
 public int maxProduct(int[] nums) {
-	int n = nums.length;
+    int n = nums.length;
     // dp[i][0] 以 i 结尾子数组最小值 dp[i][1] 以 i 结尾子数组最大值
     int[][] dp = new int[n][2];
     dp[0][0] = nums[0];
@@ -206,8 +202,6 @@ public int maxProduct(int[] nums) {
 }
 ```
 
-
-
 ### LC2708.一个小组最大的实力值
 
 [2708. 一个小组的最大实力值](https://leetcode.cn/problems/maximum-strength-of-a-group/)
@@ -216,7 +210,7 @@ public int maxProduct(int[] nums) {
 
 ```java
 public long maxStrength(int[] nums) {
-	int n = nums.length;
+    int n = nums.length;
     // dp[i][0] 前 i 个元素能选到的最小值，dp[i][1] 前 i 个元素能选到的最大值
     long[][] dp = new long[n][2];
     dp[0][0] = nums[0];
@@ -248,7 +242,7 @@ private long min(long...args) {
 
 ```java
 public long maxStrength(int[] nums) {
-	int n = nums.length;
+    int n = nums.length;
     long min = nums[0], max = nums[0];
     for (int i = 1; i < n; i++) {
         long mx1 = min * nums[i], mx2 = max * nums[i];
@@ -258,4 +252,3 @@ public long maxStrength(int[] nums) {
     return max;
 }
 ```
-

@@ -1,6 +1,4 @@
-
-
-# # array
+# array
 
 [TOC]
 
@@ -41,4 +39,3 @@ public boolean isValidSudoku(char[][] board) {
     }    
 }
 ```
-

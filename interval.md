@@ -10,13 +10,9 @@
 
 ## LC56.合并区间
 
-### 题目分析
-
 要合并所有重叠的区间，就需要先去顶所有区间的顺序，以区间左端点排序，然后才能判断区间的重叠关系。
 
 排序后，我们要返回一个合并后的新区间，合并只会缩减原来区间的长度，所以我们定义结果区间数组，长度为原区间数组长度。我们用一个指针 idx 标识结果数组中区间当前已确定的数组下标。在迭代过程中去判断当前遍历的区间是需要新增的，还是需要合并的。如果是合并的，就更新结果区间数组中区间的右端点。
-
-### 题解
 
 ```java
 class Solution {
@@ -37,13 +33,9 @@ class Solution {
 
 ## LC57.插入区间
 
-### 题目分析
-
 要合并所有的重复区间，我们分为三步，第一步先找出在合并区间左边不受影响的一部分区间。即：
 
 `intervals[i][1] < newInterval[0]`；其次我们得合并遇到的所有区间，合并即左端点取较小值，右端点取较大值，那如何判断是重叠的呢？`intervals[i][0] <= newInterval[1]`，将合并完的区间添加到结果后，最后将后续不重复的区间放入原来区间。
-
-### 题解
 
 ```java
 public int[][] insert(int[][] intervals, int[] newInterval) {
@@ -69,7 +61,7 @@ public int[][] insert(int[][] intervals, int[] newInterval) {
 
 ## LC252.会议室$
 
-https://doocs.github.io/leetcode/lc/252/
+[会议室](https://doocs.github.io/leetcode/lc/252/)
 
 ### 题目描述
 
@@ -77,14 +69,14 @@ https://doocs.github.io/leetcode/lc/252/
 
 **示例 1：**
 
-```
+```txt
 输入：intervals = [[0,30],[5,10],[15,20]]
 输出：false
 ```
 
 **示例 2：**
 
-```
+```txt
 输入：intervals = [[7,10],[2,4]]
 输出：true
 ```
@@ -122,8 +114,6 @@ class Solution {
 
 [1288. 删除被覆盖区间](https://leetcode.cn/problems/remove-covered-intervals/)
 
-### 题目描述
-
 给你一个区间列表，请你删除列表中被其他区间所覆盖的区间。
 
 只有当 `c <= a` 且 `b <= d` 时，我们才认为区间 `[a,b)` 被区间 `[c,d)` 覆盖。
@@ -132,13 +122,11 @@ class Solution {
 
 **示例：**
 
-```
+```txt
 输入：intervals = [[1,4],[3,6],[2,8]]
 输出：2
 解释：区间 [3,6] 被区间 [2,8] 覆盖，所以它被删除了。
 ```
-
-### 题目分析
 
 还是需要判断覆盖问题，判断覆盖的时候我们先按照左端点排序，然后左端点相同时按照右端点逆序排，这样的目的是为了让后出现的区间的右端点一定在被覆盖范围内。这样就可以按照上面的思路：
 
@@ -201,8 +189,6 @@ class Solution {
 
 那么有什么思路呢，肯定是外层循环去遍历每一个元素，在一层循环里做一件事，找到一个连续的序列，然后将这个序列转换为 "lo->hi" 的字符添加到结果列表，直至整个数组处理完。
 
-### 题解
-
 ```java
 class Solution {
     public List<String> summaryRanges(int[] nums) {
@@ -241,7 +227,7 @@ ans.add(tmp.toString());
 
 一般来说，分组循环的模板如下（根据题目调整）：
 
-```
+```java
 i, n = 0, len(nums)
 while i < n:
     start = i
@@ -253,6 +239,6 @@ while i < n:
 
 学会一个模板是远远不够的，需要大量练习才能灵活运用。
 
-https://leetcode.cn/problems/summary-ranges/solutions/553645/hui-zong-qu-jian-by-leetcode-solution-6zrs/comments/2106748
+[分组循环模版](https://leetcode.cn/problems/summary-ranges/solutions/553645/hui-zong-qu-jian-by-leetcode-solution-6zrs/comments/2106748)
 
 有更多类似题目可以联系。

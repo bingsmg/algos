@@ -1,4 +1,4 @@
-# linked list
+# linkedlist
 
 [TOC]
 
@@ -84,7 +84,7 @@ while (cur.next != null && cur.val != val) {}
 public ListNode deleteNode(ListNode head, int val) {
     ListNode dummy = new ListNode(-1);
     dummy.next = head;
-	ListNode pre = dummy, cur = head;
+    ListNode pre = dummy, cur = head;
     while (cur.next != null && cur.val != val) {
         pre = cur;
         cur = cur.next;
@@ -100,7 +100,7 @@ public ListNode deleteNode(ListNode head, int val) {
 public ListNode deleteNode(ListNode head, int val) {
     ListNode dummy = new ListNode(-1);
     dummy.next = head;
-	ListNode pre = dummy, cur = head;
+    ListNode pre = dummy, cur = head;
     while (cur.next != null) { // 这么判断就需要处理最后一个节点，改为 cur != null 就不需要
         if (cur.val == val) {
             cur = cur.next;
@@ -116,7 +116,7 @@ public ListNode deleteNode(ListNode head, int val) {
 public ListNode deleteNode(ListNode head, int val) {
     ListNode dummy = new ListNode(-1);
     dummy.next = head;
-	ListNode pre = dummy, cur = head;
+    ListNode pre = dummy, cur = head;
     while (cur != null) {
         if (cur.val == val) {
             cur = cur.next;
@@ -135,7 +135,7 @@ public ListNode deleteNode(ListNode head, int val) {
 public ListNode deleteNode(ListNode head, int val) {
     ListNode dummy = new ListNode(-1);
     dummy.next = head;
-	ListNode pre = dummy, cur = head;
+    ListNode pre = dummy, cur = head;
     while (cur!= null && cur.val != val) { // 针对删除多个节点的情况，把值的判断提到 if 里去即可
         pre = cur;
         cur = cur.next;
@@ -144,8 +144,6 @@ public ListNode deleteNode(ListNode head, int val) {
     return dummy.next;
 }
 ```
-
-
 
 ## LC160.相交链表
 
@@ -157,7 +155,7 @@ public ListNode deleteNode(ListNode head, int val) {
 
 链表思路：相交链表的解法有一个核心的思维：就是指向两个链表 A 和 B 的指针 p 和 q，如果以相同的速度遍历两遍列表，它们走的距离是一样的，而且，如果有相交的部分，相交节点后面的距离是一样的。
 
-![image-20240903112730300](linked list/image-20240903112730300.png)
+![image-20240903112730300](linkedlist/image-20240903112730300.png)
 
 有一种情况是如果 B 链表是 A 链表的子链表呢？其实结论是一样的，除去子链表后的距离，两个指针分别走的距离是一样的，假设 A 链表长度 m，B 链表长度为 n，走相同长度 m+n 一定都会到达 null，那么如果相交，它们在中间一定会相同。由此确定了循环退出条件。
 
@@ -193,9 +191,9 @@ public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
 
 常规的数组排序时间复杂度 O(n2)，而且都是通过循环遍历交换去实现的，链表可以吗？链表的问题在于，你不能根据下表立马得到具体的某个元素节点，所以对列表的排序本质在于对有序子节点的合并，因此链表的排序是符合归并排序的思想的。那可以使用插入排序的思想吗？请看 147 题。服了！
 
-所以我们定义一个 sort(ListNode head) 函数，首先我们得将原链表分为两半，因此需要查找中点，查找可以使用快慢指针，用 slow 和 fast 快慢指针快速查找链表的中间节点。记住找中点的写法！！！ 
+所以我们定义一个 sort(ListNode head) 函数，首先我们得将原链表分为两半，因此需要查找中点，查找可以使用快慢指针，用 slow 和 fast 快慢指针快速查找链表的中间节点。记住找中点的写法！！
 
-初始化`slow = head, fast = head.next` 
+初始化`slow = head, fast = head.next`
 判断条件 `while(fast != null && fast.next != null)`
 
 ```java
@@ -329,9 +327,10 @@ public void reorderList(ListNode head) {
 遇到这种删除节点的算法题，一定要首先考虑头结点的处理，因为 head 如果被删了，会和之后的逻辑处理不一样，所以优先用 dummy 来存取最后的头结点。
 
 回归本题，要删除排序链表中的重复元素，即发现重复元素，就给它全部删除掉，那什么时候发现是重复元素呢？发现重复元素后我们需要做什么？一步一步来分析，发现重复元素，我们要记录这段重复元素的前一个节点和后一个节点因为这样才能把这一段删除，那如何发现是重复的呢，即 `cur.next.val == cur.val`，我们用 pre 记录删除重复元素后的链表处理到的每一个节点，当发现重复后，一直让 cur 走到重复元素的末尾，然后记录下一个链表节点。
+
 ```java
 public ListNode deleteDuplicates(ListNode head) {
-	ListNode dummy = new ListNode(-1);
+    ListNode dummy = new ListNode(-1);
     dummy.next = head;
     ListNode pre = dummy, cur = head, aux = null;
     while (cur != null && cur.next != null) { // 一片混乱
@@ -349,7 +348,7 @@ public ListNode deleteDuplicates(ListNode head) {
 
 思路其实没区别，我们让 cur 指针一直指向删除后不重复链表的最后一个节点，永远都是拿它的下两个节点进行比较，如果发现相同，我们再循环一次找到找到这个重复子链表的最后节点的下一个节点，先连接到 cur，然后继续重复去处理 cur 之后的节点，只有发现下两个节点的值不重复的，我们让 cur 往后移动。
 
-![image-20240904154726405](linked list/image-20240904154726405.png)
+![image-20240904154726405](linkedlist/image-20240904154726405.png)
 
  ```java
 ppublic ListNode deleteDuplicates(ListNode head) {
@@ -376,11 +375,11 @@ ppublic ListNode deleteDuplicates(ListNode head) {
 
 其实思想就是移花接木，你不要以为必须是那个内存地址，对应的那个节点对象的删除，只是节点对应值的删除罢了，那么如果你这么想，你只需要知道如果删除了这个值，链表会发生什么变化？就像数组一样呗，当前节点删了，后面的节点全部往前唯一一个距离，但是链表又不是连续的，也不需要全部的节点都移动，只需要将后序节点的值赋值到本节点，然后删除后续节点，并连接后续节点后的下一个节点。如果要删除的必须是那个节点呢？也好处理，我们只需要将 node 和 node.next 交换，然后删除 node.next 不就得了嘛，至此，全篇结束。
 
-当然这里题目要求说了，不是 tail 节点。所以不用考虑 
+当然这里题目要求说了，不是 tail 节点，所以不用考虑。
 
 ```java
 public void deleteNode(ListNode node) {
-	node.val = node.next.val;
+    node.val = node.next.val;
     node.next = node.next.next;
 }
 ```
@@ -505,7 +504,7 @@ public ListNode findM(ListNode head) {
 ```java
 public ListNode insertionSortList(ListNode head) {
     if (head == null || head.next == null) return head;
-	ListNode dummy = new ListNode(-1);
+    ListNode dummy = new ListNode(-1);
     dummy.next = head;
     ListNode cur = head;
     while (cur.next != null) {
@@ -594,7 +593,7 @@ public boolean isPalindrome(ListNode head) {
 
 ```java
 public ListNode detectCycle(ListNode head) {
-	ListNode slow = head, fast = head, p = head;
+    ListNode slow = head, fast = head, p = head;
     while (fast != null && fast.next != null && fast != slow) {
         slow = slow.next;
         fast = fast.next.next;
@@ -638,8 +637,8 @@ public ListNode detectCycle(ListNode head) {
 
 ```java
 public Node copyRandomList(Node head) {
-	if (head == null) return null;
-   	Node dummy = new Node(-1);
+    if (head == null) return null;
+    Node dummy = new Node(-1);
     Node pre = dummy, cur = head;
     Map<Integer, Node> map = new HashMap<>();
     while (cur != null) {
@@ -678,7 +677,7 @@ public Node copyRandomList(Node head) {
 
 那还有什么思路吗？
 
-![image-20240909095059328](linked list/image-20240909095059328.png)
+![image-20240909095059328](linkedlist/image-20240909095059328.png)
 
 先将原链表的每一个节点对应的拷贝作为原节点的下一个节点，再遍历原链表节点让 random 指向成功对应，最后断开原链表和拷贝链表之间的关联。
 
@@ -884,7 +883,7 @@ public ListNode partition(ListNode head, int x) {
 
 链表长度 n 和分割为 k 部分两者的关系对这道题影响是最关键的，我们假设链表长度为 3，举例如下：
 
-```
+```txt
 k = 1: 1 0 0
 k = 2: 1 1 0
 k = 3: 1 1 1 
@@ -989,4 +988,3 @@ public ListNode[] splitListToParts(ListNode head, int k) {
     return ans;
 }
 ```
-

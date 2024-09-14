@@ -2,8 +2,6 @@
 
 [TOC]
 
-
-
 ## LC67.二进制求和
 
 [67. 二进制求和](https://leetcode.cn/problems/add-binary/)
@@ -28,4 +26,3 @@ public String addBinary(String a, String b) {
     return ans.reverse().toString();
 }
 ```
-
