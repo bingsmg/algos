@@ -158,7 +158,7 @@ public void traverse(TreeNode root) {
 
 [145. 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal)
 
-后序遍历有一种比较取巧的方式，如下：
+后序遍历有一种比较取巧的方式，原理是将：根-右-左 的遍历结果反转，就是：左-右-根，又因为栈的入出反逻辑，所以入栈按照先左后右入栈即可。如下：
 
 ```java
 public void traverse(TreeNode root) {
@@ -281,3 +281,258 @@ int idx = memo.get(root.val, pr + 1); // 为什么这么改？？
 ```
 
 比如一个数组长度为 5，那么最后没有下一个更大元素的就是索引 4 的元素，最后的 build 就是 build(preorder, 4, 4)，我们找不到就让 idx 为 5，从而让 pl+1 和 idx-1 超出范围，让 idx 和 pr 超出范围。
+
+### LC152.验证BST的后序遍历序列
+
+[LCR 152. 验证二叉搜索树的后序遍历序列](https://leetcode.cn/problems/er-cha-sou-suo-shu-de-hou-xu-bian-li-xu-lie-lcof/)
+
+一定牢牢把握题目信息，BST，即左子树所有元素小于 root 小于右子树所有元素。刚开始我的思路是根据后序构建树，然后中序比遍历判断有序性，结果发现有问题，好吧，修正了 break 后没问题了：
+
+```java
+List<Integer> ans = new ArrayList<>();
+public boolean verifyTreeOrder(int[] postorder) {
+    int n = postorder.length;
+    if (n <= 1) return true;
+    TreeNode root = build(postorder, 0, n - 1);
+    traverse(root);
+    for (int i = 0; i < n - 1; i++) {
+        if (ans.get(i + 1) <= ans.get(i)) return false;
+    }
+    // 还原+中序遍历
+    return true;
+}
+
+private void traverse(TreeNode root) {
+    if (root == null) return;
+    traverse(root.left);
+    ans.add(root.val);
+    traverse(root.right);
+}
+
+public TreeNode build(int[] postorder, int pl, int pr) {
+    if (pr < pl) return null;
+    int idx = pr;
+    for (int i = pl; i <= pr; i++) {
+        if (postorder[i] > postorder[pr]) {
+            idx = i;
+            break; // 记得 break，第一次编码这里出错了 ！！！！
+        }
+    }
+    TreeNode root = new TreeNode(postorder[pr]);
+    root.left = build(postorder, pl, idx - 1);
+    root.right = build(postorder, idx, pr - 1);
+    return root;
+}
+```
+
+但我们有必要这么麻烦吗，先构建-再中序遍历-再判断有序性，其实没必要，我们完全可以通过递归解决，每次根据 root 找到序列分割点，判断分割后的两段是否一段全小于 root_val，另一段全大于 root_val：
+
+```java
+valid(postorder, 0, n - 1);
+private boolean valid(int[] postorder, int pl, int pr) {
+    if (pr <= pl) return true;
+    int root_val = postorder[pr];
+    int i = pl;
+    while (postorder[i] < root_val) i++;
+    int idx = i;
+    while (postorder[i] > root_val) i++;
+    return i == pr && valid(postorder, pl, idx - 1) && valid(postorder, idx, pr - 1);
+    
+}
+```
+
+递归的时间复杂度如何计算？其实就是 **递归次数*递归过程中的最大基础操作的执行次数**，该递归可以看为 n 次，每次递归需要走一个 while，最差时间复杂度得走 n * (n - 1) * (n - 2)....1 次，所以是 nlog(n)。
+
+## 二叉树的路径
+
+### LC257.二叉树的所有路径
+
+路径是指两个节点间的相连方式，本题目要求的是 root 到所有 leaf 的路径，即从上往下的所有分流。我们得遍历永远都只能从 root 开始向下扩展，要记得所有的路径，按照 dfs 的方式来看，就是在到达叶子结点后，我们必须将栈里的所有数据保存为一个副本，代表一条到达 leaf 的路径，当遍历完所有的 leaf 就能得到最终结果。
+
+```java
+public List<String> binaryTreePaths(TreeNode root) {
+	List<String> ans = new ArrayList<>();
+    if (root == null) return ans;
+    Deque<TreeNode> stack = new LinkedList<>();
+    TreeNode cur = root;
+    while (!stack.isEmpty()) {
+        while (cur != null) {
+            stack.push(cur);
+            cur = cur.left;
+        }
+        cur = stack.pop();
+        if (cur.left == null && cur.right == null) {
+            // 将 stack 转为 String
+        }
+        cur = cur.right;
+    }
+}
+```
+
+上面的思路看似很合理，但是错的，因为在记录第一条路径后，因为父节点出栈了，导致剩余的所有路径都会缺失已出栈的节点，那如何解决？我们记录每一个节点对应的临时路径即可，即同时建立两个栈，一个 node_stack，一个 path_stack 来记录短路径，最后发现出栈节点是 leaf，就将对应的 path 添加到结果。
+
+```java
+public List<String> binaryTreePaths(TreeNode root) {
+    List<String> ans = new ArrayList<>();
+    if (root == null) return ans;
+    Deque<TreeNode> node_stack = new LinkedList<>();
+    Deque<String> path_stack = new LinkedList<>();
+    node_stack.push(root);
+    path_stack.push(String.valueOf(root.val));
+    while (!node_stack.isEmpty()) {
+        TreeNode node = node_stack.pop();
+        String path = path_stack.pop();
+        if (node.left == null && node.right == null) {
+            ans.add(path);
+        }
+        if (node.right != null) {
+            node_stack.push(node.right);
+            path_stack.push(path + "->" + node.right.val);
+        }
+        if (node.left != null) {
+            node_stack.push(node.left);
+            path_stack.push(path + "->" + node.left.val);
+        }
+    }
+    return ans;
+}
+```
+
+迭代的正确思路如上，实际上，我们可以通过递归来实现：
+
+```java
+List<String> ans = new ArrayList<>();
+Deque<Integer> path = new LinkedList<>();
+private void dfs(TreeNode root) {
+    path.offerLast(root.val);
+    if (root.left == null && root.right == null) {
+        ans.add(String.join("->", path));
+        return;
+    }
+    if (root.left != null) {
+        dfs(root.left);
+        path.pollLast();
+    }
+    if (root.right != null) {
+        dfs(root.right);
+        path.pollLast();
+    }
+}
+```
+
+### LC113.路径总和II
+
+[113. 路径总和 II](https://leetcode.cn/problems/path-sum-ii/)
+
+给你`root`和一个整数目标和`targetSum`，找出所有 **从根节点到叶子节点** 路径总和等于给定目标和的路径。那么根据题目描述，直接拿所有路径，并过滤出来符合条件的行不行？肯定可以啊，所以修改二叉树所有路径的代码如下：
+
+```java
+int target;
+List<List<Integer>> ans = new ArrayList<>();
+List<Integer> path = new ArrayList<>();
+private void dfs(TreeNode root) {
+    path.add(root.val);
+    if (root.left == null && root.right == null && check(path)) {
+        ans.add(new ArrayList<>(path));
+        return;
+    }
+    if (root.left != null) {
+        dfs(root.left);
+        path.remove(path.size() - 1);
+    }
+    if (root.right != null) {
+        dfs(root.right);
+        path.remove(path.size() - 1);
+    }
+}
+private boolean check(List<Integer> path) {
+    int sum = 0;
+    for (int v : path) sum += v;
+    return sum == target;
+}
+```
+
+这种实现方式需要每次都走一遍 check 函数，多了一部分时间开销，有没有更好的方式可以减掉这一部分开销呢？
+
+我们直接在递归的过程中将目标和以参数的形式传递下去即可：
+
+```java
+private void dfs(TreeNode root, int target) {
+    path.add(root.val);
+    if (root.left == null && root.right == null) {
+        if (target == root.val) ans.add(new ArrayList<>(path));
+        return;
+    }
+    if (root.left != null) {
+        dfs(root.left, target - root.val);
+        path.remove(path.size() - 1);
+    }
+    if (root.right != null) {
+        dfs(root.right, target - root.val);
+        path.remove(path.size() - 1);
+    }
+}
+```
+
+路径问题的写法如上面所示，只让节点执行逻辑，不会判断 null。一般会直接判断节点是不是叶子节点，如果是叶子节点的话处理结果，不会让递归走到 null，因为如果到了 null，那么会导致记录的路径会在 parent 的 left 为 null，right 不为 null 时提前把 parent 移除掉，从而导致结果不正确。
+
+本来是这么想的，后面发现不对，想错了，我们想的是如果这么写：
+
+```java
+path.add(val);
+// ...
+dfs(root.left);
+dfs(root.right);
+path.removeLast();
+```
+
+我们担心的是，这样会不会导致只会 remove 一次，导致处理少了节点，从而影响结果，之前一直对这两种处理方式不是很理解清楚，为什么有时候判断 null 能得到正确答案，有时候不判断 null 能得到正确答案，问题在哪呢？其实在前面 leaf 的处理完后是否 return。
+
+- 如果不 return 就可以保证 leaf 处理完后，就将 leaf 从 path 移除，所以可以保证每个节点处理完后都能在返回后从 path 里移除掉，保证结果正确。
+- 如果 return，就会导致处理完后就会导致上层节点的处理结束，导致移除的是下层的节点，从而导致路径多出来一个节点。
+
+那么我们怎么写呢？这里写处理 null 的代码，保证添加了节点后，不论如何，处理完该节点都能从 path 里移除掉该节点。
+
+```java
+private void dfs(TreeNode root) {
+    if (root == null) return;
+    target -= root.val;
+    path.add(root.val);
+    if (root.left == null && root.right == null && target == 0) {
+        ans.add(new ArrayList<>(path));
+        // No return!!!
+    }
+    dfs(root.left);
+    dfs(root.right);
+    path.remove(path.size() - 1);
+}
+```
+
+
+
+### LC437.路径总和III
+
+[437. 路径总和 III](https://leetcode.cn/problems/path-sum-iii/)
+
+前面两道题我们处理的都是根节点到叶子节点，即 root-...-leaf 的路径逻辑，通过 stack 和递归分别实现了。但是本题目不是只需要考虑 root 而是需要考虑每一个节点的情况。所以主函数就需要递归，而且需要记录一个全局变量来统计整个过程中得到了多少个答案。
+
+```java
+public int pathSum(TreeNode root, int targetSum) {
+    if (root == null) return 0;
+    dfs(root, targetSum);
+    pathSum(root.left, targetSum);
+    pathSum(root.right, targetSum);
+    return count;
+}
+int count;
+private void dfs(TreeNode root, long targetSum) { // 使用 long 防止负负得正超出 case 越界问题
+    if (root == null) return;
+    targetSum -= root.val;
+    if (targetSum == 0) count++; // 任意路径，起点不必 root，终点不必 leaf
+    dfs(root.left, targetSum);
+    dfs(root.right, targetSum);
+}
+```
+
+
+
