@@ -345,6 +345,11 @@ private boolean valid(int[] postorder, int pl, int pr) {
 
 ## 二叉树的路径
 
+整体题目分为两类，一种是关于 root-leaf 之间关系的题目，因为这是一个从上往下的过程，所以使用递归来实现，记录根节点到叶子节点的路径，然后针对题意分别处理；另一种是 node-node，即要通过任意两个节点之间的关系来求出题解，既然是任意节点开始到任意节点，所以我们的主函数就需要去递归，具体的某个节点的处理也需要递归，很多情况需要双重递归，以下题目也按照两种不同的求解过程来梳理题目。
+
+- 自顶向下
+- 非自顶向下
+
 ### LC257.二叉树的所有路径
 
 路径是指两个节点间的相连方式，本题目要求的是 root 到所有 leaf 的路径，即从上往下的所有分流。我们得遍历永远都只能从 root 开始向下扩展，要记得所有的路径，按照 dfs 的方式来看，就是在到达叶子结点后，我们必须将栈里的所有数据保存为一个副本，代表一条到达 leaf 的路径，当遍历完所有的 leaf 就能得到最终结果。
@@ -508,8 +513,6 @@ private void dfs(TreeNode root) {
 }
 ```
 
-
-
 ### LC437.路径总和III
 
 [437. 路径总和 III](https://leetcode.cn/problems/path-sum-iii/)
@@ -534,5 +537,411 @@ private void dfs(TreeNode root, long targetSum) { // 使用 long 防止负负得
 }
 ```
 
+### LC988.从叶节点的最小字符串
 
+[988. 从叶结点开始的最小字符串](https://leetcode.cn/problems/smallest-string-starting-from-leaf/)
+
+需要你返回从叶节点到根节点构成的最小字符串的路径，即 leaf->root 的值的字符串字典序最小，如果字符串前缀一样，则长度越短的越小。
+
+看题目就是需要我们求出所有的路径，然后将 root->leaf 的路径长度反转，并记录出一个字典序最小的即可。所以我们先求出路径：
+
+```java
+private List<String> ans = new ArrayList<>();
+private StringBuilder path = new StringBuilder();
+
+public void dfs(TreeNode root) {
+    path.append('a' + root.val);
+    if (root.left == null && root.right == null) {
+        ans.add(path.reverse().toString());
+        path.reverse();
+    }
+    dfs(root.left);
+    dfs(root.right);
+    path.deleteCharAt(path.length() - 1);
+}
+```
+
+最后对保存的所有路径进行排序取第一个即可：这里注意一点 StringBuilder 也是维护的 char[] 数组，reverse 操作会反转字符数组，并且会返回。如果是字符串的比较，直接用 `"".compareTo()` 即可，或者 `Object.compare(a, b)`。对于数字和字符的转化用 `（char)...`强转实现。
+
+```java
+Collections.sort(ans);
+return ans.get(0);
+```
+
+```java
+public String smallestFromLeaf(TreeNode root) {
+    dfs(root);
+    Collections.sort(ans);
+    return ans.get(0);
+}
+
+private List<String> ans = new ArrayList<>();
+private StringBuilder path = new StringBuilder();
+
+public void dfs(TreeNode root) {
+    if (root == null) return;
+    path.append((char)('a' + root.val));
+    if (root.left == null && root.right == null) {
+        ans.add(path.reverse().toString());
+        path.reverse();
+    }
+    dfs(root.left);
+    dfs(root.right);
+    path.deleteCharAt(path.length() - 1);
+}
+```
+
+### LC543.二叉树的直径
+
+[543. 二叉树的直径](https://leetcode.cn/problems/diameter-of-binary-tree/)
+
+ **直径** 是指树中任意两个节点之间最长路径的 **长度**。
+
+任意两个节点之间的最长长度，按照二叉树的结构来思考，可能**经过** root，也可能不经过 root，比如形状倾向于链表式的那种，所以一定要首先理解题意。
+
+那我们如何思考呢？其实二叉树的最长直径就是，以二叉树中的**每一个节点为根节点**，然后它的左侧到叶子的路径最长，并且右侧到叶子的路径最长。所以我们写出如下函数：
+
+```java
+public int diameter(TreeNode node) { // diameter-直径，以 node 为根节点的直径
+    if (node == null) return 0;
+    if (node.left == null && node.right == null) return 1;
+    return diameter(node.left) + diameter(node.right) + 1;
+}
+```
+
+第一波写出了这个代码，不知道怎么写出来的，理了一下，这个递归好像求得是以 node 为根节点的树的所有节点，这肯定是错的，因为我们的直径不能取所有节点，它应该取它的左侧最长的那一条和右侧最长的那一条，所以针对子树返回的应该是左子树的最长长度和右子树最长长度 + 1。
+
+```java
+public int diameter(TreeNode node) { // diameter-直径，以 node 为根节点的直径
+    if (node == null) return 0;
+    if (node.left == null && node.right == null) return 1;
+    int left = diameter(node.left);
+    int right = diameter(node.right);
+    return Math.max(left, right) + 1;
+}
+```
+
+我们在处理多少个路径的时候其实按照 节点数 - 1 去处理时最简单的，所以我们求经过 node 的左侧最长长度和右侧最长长度的时候，都可以拿 总节点数-1 来求得。
+
+所以要求得经过 root 的直径，即是经过 root.left 的单侧最长长度 + root.right 的单侧最长长度 的关系得来：
+
+```java
+public int dfs(TreeNode root) {
+    int left = diameter(root.left), right = diameter(root.right);
+	return left + right + 1;
+}
+```
+
+因为可能未必是经过 root 的，所以我们需要计算每一个节点的，然后记录一个最大值。
+
+```java
+public int maxDiameter(TreeNode root) {
+    int left = diameter(root.left);
+    int right = diameter(root.right);
+    ans = left >= right ? Math.max(left, ans) : Math.max(right, ans);
+}
+```
+
+好吧，忘掉上面所有，因为蛇咬尾了，死在递归里了。
+
+我么重新开始，要求 root 的直径，我们递归函数不要定义为返回 root 函数的直径，而是定义为**经过 root 节点的单侧最长路径**：那么我们在这个过程中，去全局记录直径即可。我们先求经过 root 左的单侧最长，再求经过 root 右的单侧最长，则直径就是 左侧最长+右侧最长，全局维护该值即可。
+
+```java
+int ans = -1;
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    int l = dfs(root.left), r = dfs(root.right);
+    int lp = 0, rp = 0; // lp-left one-sided path
+    if (root.left != null) lp = l + 1;
+    if (root.right != null) rp = r + 1;
+    ans = Math.max(ans, lp + rp);
+    return Math.max(lp, rp);
+}
+```
+
+重复一遍：**定义为经过 root 节点的单侧最长路径**。
+
+所以 root== null 对应 0，root.left != null 对应 + 1，root.right != null 对应 + 1。
+
+### LC124.二叉树中的最大路径和
+
+[124. 二叉树中的最大路径和](https://leetcode.cn/problems/binary-tree-maximum-path-sum/)
+
+从题目中看到，最大路径和的路径序列可能不经过根节点，所以要么我们双重递归，要么我们在主递归里的特定条件下进行处理，如直径一题的记录。
+
+一条路径上的节点有正有负，如果某个节点为根节点的子路径和是 负数，我们肯定该节点加入路径并不会让和变大，所以得舍去。所以按照直径一题的思想，我们定义 dfs 函数为单侧最大路径和。
+
+```java
+int ans = Integer.MIN_VALUE;
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    int l = dfs(root.left), r = dfs(root.right);
+    int lp_max = 0; // left path max
+    int rp_max = 0;
+    if (root.left != null) lp_max += l;
+    if (root.right != null) rp_max += r;
+    ans = Math.max(ans, lp_max + rp_max + root.val);
+    int one_side_max = Math.max(lp_max > 0 ? lp_max : 0, rp_max > 0 ? rp_max : 0) + root.val;
+    return one_side_max > 0 ? one_side_max : 0;
+}
+```
+
+好像可以优化：
+
+```java
+int ans = Integer.MIN_VALUE;
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    int l = dfs(root.left), r = dfs(root.right);
+    int lp_max = l > 0 ? l : 0; // left path max
+    int rp_max = r > 0 ? r : 0;
+    ans = Math.max(ans, lp_max + rp_max + root.val);
+    int one_side_max = Math.max(lp_max, rp_max) + root.val;
+    return one_side_max > 0 ? one_side_max : 0;
+}
+```
+
+### LC687.最长同值路径
+
+[687. 最长同值路径](https://leetcode.cn/problems/longest-univalue-path/)
+
+要返回一个每个节点具有相同值的路径，路径也可以不经过根节点。按照前面两道题的思路来，dfs 来求出单侧同值最长路径长度，然后在这个过程中记录所有路径中的最大值。
+
+```java
+int ans = 0;
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    int l = dfs(root.left), r = dfs(root.right);
+    int lp = 0, rp = 0;
+    if (root.left != null && root.val == root.left.val) lp = l + 1;
+    if (root.right != null && root.val == root.right.val) rp = r + 1;
+    ans = Math.max(ans, lp + rp);
+    return Math.max(lp, rp);
+}
+```
+
+## 二叉树的对称性
+
+该类题目是需要基于二叉树的 left 和 right 的特点进行思考，要从整体的对称性思考，把大问题分解为子问题，而不能单独考虑一部分，而是必须同时考虑两部分，从而写出对称性递归代码。
+
+一般题目是为了判断二叉树的特性的问题，返回 boolean 结果，基于具体题目是否需要构造辅助函数有可以分为两种问题。
+
+- 单树问题和双树问题，即是给了一个 root 还是两个，是判断一棵树的左右子树还是两棵树
+- 根节点子树的对称性不能解决问题，可能需要判断每一个子节点作为根的情况，可能需要辅助函数
+
+一般判断模式或者解题模版如下：
+
+```java
+public boolean dfs(TreeNode root) {
+    if (root == null) return true/false;
+    if (root.left == null) return true/false;
+    if (root.right == null) return true/false;
+    //...
+}
+private boolean func(TreeNode p, TreeNode q) {
+    if (p == null && q == null) return true/false;
+    if (p != null || q != null) return true/false;
+    //...
+}
+```
+
+### LC100.相同的树
+
+[100. 相同的树](https://leetcode.cn/problems/same-tree/)
+
+排除不相同的情况，返回相同的判断即可。
+
+```java
+public boolean dfs(TreeNode p, TreeNode q) {
+    if (p == null && q == null) return true;
+    else if (p == null) return false;
+    else if(q == null) return false;
+    else return p.val == q.val && dfs(p.left, q.left) && dfs(p.right, q.right);
+}
+```
+
+### LC101.对称二叉树
+
+[101. 对称二叉树](https://leetcode.cn/problems/symmetric-tree/)
+
+判断一棵树是不是轴对称，什么叫轴对称呢？`root.left.val == root.right.val`并且 root.left.right 和 root.right.left 及 root.left.left 和 root.right.right 都相等。所以直接编码：
+
+```java
+public boolean dfs(TreeNode root) {
+    if (root == null) return true;
+    else if (root.left == null && root.right == null) return true;
+    else if (root.left == null) return false;
+    else if (root.right == null) return false;
+    else {
+        return dfs(root.left.left, root.right.right) && dfs(root.left.right, root.right.left); // !!!出问题了，这得两个参数啊
+    }
+}
+```
+
+修改递归函数，我们接受两个参数：
+
+```java
+public boolean isSymmetric(TreeNode root) {
+    if (root == null) return true;
+    return dfs(root.left, root.right);
+}
+public boolean dfs(TreeNode p, TreeNode q) {
+    if (p == null && q == null) return true;
+    else if (p == null) return false;
+    else if (q == null) return false;
+    else {
+        return p.val == q.val && dfs(p.left, q.right) && dfs(p.right, q.left);
+    }
+}
+```
+
+### LC104.二叉树的最大深度
+
+[104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+
+最大深度就是层数，所以层序遍历即可解决，但这里我们用递归的方式思考，最大深度，这个必须是经过 root 节点的，所以是由子树的最大深度递推上来的，递推过程记录备忘录 memo 就成了动态规划了。
+
+```java
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    return Math.max(dfs(root.left), dfs(root.right)) + 1;
+}
+```
+
+### LC110.平衡二叉树
+
+[110. 平衡二叉树](https://leetcode.cn/problems/balanced-binary-tree/)
+
+平衡二叉树定义：左右子树最大高度差<=1，空树是平衡树，根节点的左右子树高度差<=1，左子树是平衡二叉树 且右子树是平衡二叉树。
+
+因为除了空树逻辑判断还有高度逻辑判断，所以我们在递归过程中还要求二叉树的高度。
+
+```java
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    return Math.max(dfs(root.left), dfs(root.right)) + 1;
+}
+```
+
+```java
+public boolean is_balance(TreeNode root) {
+    if (root == null) return true;
+    return Math.abs(dfs(root.left) - dfs(root.right)) <= 1 && is_balance(root.left) && is_balance(root.right);
+}
+```
+
+还有一种写法，只用一个递归函数搞定，主要思想是求高度的过程中，如果发现高度不满足了，直接返回 -1，最后判断 root 的高度是否为 -1。
+
+```java
+public int dfs(TreeNode root) {
+    if (root == null) return 0;
+    int l = dfs(root.left), r = dfs(root.right);
+    if (l == -1 || r == -1) return -1; // 得加上这一句
+    if (Math.abs(l - r) > 1) return -1; // 不能只判断这一个奥，因为可能左右子树都不平衡都返回 -1，结果这里一减反而导致不为 -1 了。
+    return Math.max(dfs(root.left), dfs(root.right)) + 1;
+}
+public boolean is_balance(TreeNode root) {
+    return dfs(root) != -1;
+}
+```
+
+### LC965.单值二叉树
+
+[965. 单值二叉树](https://leetcode.cn/problems/univalued-binary-tree/)
+
+直接编码了
+
+```java
+public boolean dfs(TreeNode root) {
+    if (root == null) return true;
+    else if (root.left == null && root.right == null) return true;
+    else if (root.left != null && root.val != root.left.val) return false;
+    else if (root.right != null && root.val != root.right.val)  return false;
+    return dfs(root.left) && dfs(root.right);
+}
+```
+
+有时候判断返回正的逻辑其实并不好处理，那我们就去处理反的逻辑，因为但对于判断类的题目，最重要的是分情况讨论的时候把 case 分类清楚。
+
+### LC572.另一个树的子树
+
+[572. 另一棵树的子树](https://leetcode.cn/problems/subtree-of-another-tree/)
+
+判断一棵树是不是另一棵树的子树，直接编码：
+
+```java
+public boolean dfs(TreeNode root, TreeNode subRoot) {
+    if (root == null) return false;
+    if (isSame(root, subRoot)) return true;
+    else return dfs(root.left, subRoot) || dfs(root.right, subRoot);
+}
+public boolean isSame(TreeNode p, TreeNode q) {
+    if (p == null && q == null) return true;
+    else if (p == null) return false;
+    else if (q == null) return false;
+    else return p.val == q.val && isSame(p.left, q.left) && isSame(p.right, q.right);
+}
+```
+
+### LC226.翻转二叉树
+
+[226. 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)
+
+```java
+public TreeNode invertTree(TreeNode root) {
+    if (root == null) return null;
+    TreeNode left = invertTree(root.left);
+    TreeNode right = invertTree(root.right);
+    root.left = right;
+    root.right = left;
+    return root;
+}
+```
+
+### LC617.合并二叉树
+
+[617. 合并二叉树](https://leetcode.cn/problems/merge-two-binary-trees/)
+
+我们先确定是将 q 合并到 p。
+
+```java
+public TreeNode mergeTrees(TreeNode p, TreeNode q) {
+	if (p == null) return q;
+    if (q == null) return p;
+    
+    p.val += q.val;
+    p.left = mergeTrees(p.left, q.left);
+    p.right = mergeTrees(p.right, q.right);
+    return p;
+}
+```
+
+---
+
+以下属于需要借助辅助递归函数判断。
+
+LC 101 对称二叉树/LCR 145
+
+### LCR 143.树的子结构/剑指 Offer 26 
+
+[LCR 143. 子结构判断](https://leetcode.cn/problems/shu-de-zi-jie-gou-lcof/)
+
+判断一棵树 q 是不是另一个棵树 p 的子结构，子结构则与主树一部分有相同的结构和节点值。很明显不只针对 root，而是针对每一个 node，所以主函数和辅助函数都需要递归。题目声明了空树不会是 p 的子结构。substructure 定义为：q 是否是以 p 为 root 的树的子结构，dfs 的定义为以 q 为 root 的树和以 p 为 root 的树是否有相同结构。
+
+```java
+public boolean substructure(TreeNode p, TreeNode q) {
+    if (q == null || p == null) return false;
+    return dfs(p, q) || substructure(p.left, q) || substructure(p.right, q);
+}
+
+public boolean dfs(TreeNode p, TreeNode q) {
+    if (p == null && q == null) return true;
+    if (p == null && q != null) return false;
+    if (p != null && q == null) return true;
+    if (p.val != q.val) return false;
+    return dfs(p.left, q.left) && dfs(p.right, q.right);
+}
+```
+
+## 二叉树和链表
 

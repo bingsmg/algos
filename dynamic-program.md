@@ -252,3 +252,25 @@ public long maxStrength(int[] nums) {
     return max;
 }
 ```
+
+## 维护前缀最大值
+
+### LC1014.最佳观光组合
+
+[1014. 最佳观光组合](https://leetcode.cn/problems/best-sightseeing-pair/)
+
+通过对一对观光景点的最高分公式：`v[i] + v[j] + i - j` 进行移项 `(v[j] - j)+(v[i] + i)`，这时候就发现可以遍历 *j*同时维护 *i*< *j*时 **values[i]+i** 的最大值，这样就能得到固定*j*时的最优解，维护所有*j*的最大值就能得到答案。
+
+```java
+private int maxScoreSightseeingPair(int[] values) {
+    int n = values.length;
+    int ans = 0;
+    int mx = values[0]; // values[0] + 0
+    for (int i = 1; i < n; i++) {
+        ans = Math.max(ans, values[i] - i + mx);
+        mx = Math.max(mx, values[i] + i);
+    }
+    return ans;
+}
+```
+
