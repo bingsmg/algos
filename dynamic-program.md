@@ -253,6 +253,67 @@ public long maxStrength(int[] nums) {
 }
 ```
 
+## 子序列
+
+### LC300.最长递增子序列
+
+[300. 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)
+
+最容易的做法就是两层 for 循环，针对每一个 nums[i]，从 [0,i-1] 的子数组里去判断，是否能将 nums[i] 置为末尾从而增加子序列长度。我们定义 dp[i] 表示以 i 结尾的元素的最长递增子序列长度，从而可以由 dp[0...i-1] 的判断中更新此长度。用 O(n^2) 的时间复杂度解决。
+
+但是其实我们有更优的处理方式去处理该问题，即我们可以知道如果**相同长度的序列，末尾元素越小则在后续的处理中更可能得到更长的子序列**。基于此，我们定义一个 tail 数组，tail[len] 表示长度为 len 的子序列末尾元素的最小值。因为 tail 数组基于定义一定是一个递增序列，所以我们可以用二分法来进一步降低内循环的时间复杂度。
+
+tail[0] = nums[0]，在之后 1->n-1 的元素遍历过程中，我们判读如果 nums[i] > tail[len] 则 tail[++len] = nums[i]，如果发现 nums[i] 小于 tail[len]，则说明在 1-len 的区间里，当前 nums[i] 可以替换某元素，使得该 len 的元素末位置更小。所以我们通过二分替换，找到该元素应该插入的位置，并将元素进行替换。从而用 O（nlog(n)) 的时间复杂度求解问题。
+
+```java
+public int lengthOfLIS(int[] nums) {
+    int n = nums.length;
+    // dp[i] 表示以 nums[i] 结尾的最长递增子序列
+    int[] dp = new int[n];
+    for (int i = 1; i < n; i++) {
+        dp[i] = 1;
+        for (int j = i - 1; j >= 0; j--) {
+            if (nums[i] > nums[j]) dp[i] = Math.max(dp[i], dp[j] + 1);
+        }
+    }
+    int ans = 0;
+    for (int num : dp) if (num > ans) ans = num;
+    return ans;
+}
+```
+
+贪心 + 二分：
+
+```java
+public int lengthOfLIS(int[] nums) {
+    int n = nums.length;
+    // dp[i] 表示以 nums[i] 结尾的最长递增子序列
+    int[] dp = new int[n];
+    int[] tail = new int[n + 1]; // 最长为 n
+    int len = 1;
+    tail[len] = nums[0];
+    for (int i = 1; i < n; i++) {
+        if (nums[i] > tail[len]) tail[++len] = nums[i];
+        else {
+            int lo = 1, hi = len;
+            while (lo < hi) {
+                int mid = lo + (hi - lo) / 2;
+                if (tail[mid] < nums[i]) lo = mid + 1;
+                else hi = mid;
+            }
+            tail[lo] = nums[i];
+        }
+    }
+    return len;
+}
+```
+
+### LC673.最长递增子序列的个数
+
+[673. 最长递增子序列的个数](https://leetcode.cn/problems/number-of-longest-increasing-subsequence/)
+
+
+
 ## 维护前缀最大值
 
 ### LC1014.最佳观光组合
