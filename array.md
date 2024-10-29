@@ -39,3 +39,32 @@ public boolean isValidSudoku(char[][] board) {
     }    
 }
 ```
+
+## 27.移除元素
+
+[27. 移除元素](https://leetcode.cn/problems/remove-element/)
+
+### 题目
+
+```
+Given a sorted array, remove the duplicates in place such that each element appear only once
+and return the new length.
+Do not allocate extra space for another array, you must do this in place with constant memory.
+For example, Given input array A = [1,1,2],
+Your function should return length = 2, and A is now [1,2].
+```
+
+### 分析
+
+数组是连续的一段地址空间，题目要求原地删除原数组中的重复元素，首先需要去理解不开辟新的空间怎么去原地呢？其实就是如果是重复的值，我们需要通过覆盖操作实现。
+
+在遍历的过程中，为了保证记录不重复的数组元素的位置，我们除了遍历指针 i 之外还需要一个变量 idx，要重点去理解 idx 表示什么？idx 表示当前已遍历原数组后的无重复元素的下标位置。即刚开始 idx = 0，在 i 的遍历过程中，如果发现 nums[i] 的值是和 idx 不一样的，我们更新 idx + 1 的值。
+
+之后还有一道类似题目，要求移除元素，但是要保留原数组中重复的元素次数不能超过 x 次，那怎么做呢？举例    x 的值为 2，即在数组 [1, 1, 1, 1, 2, 2, 2, 3, 3] 移除后返回 [1, 1, 2, 2, 3, 3]。
+
+我们可以总结一般性，我们永远去维护 idx 的定义为当前已遍历数组满足移除条件后的正确位置。在处理保留多个元素的逻辑中，我们保证 [idx - 2, idx) 区间的元素一定是满足移除条件的，那么 idx 从 2 开始，当 i 和 idx-2 的结果不一致时，我们更新 nums[idx++] = nums[i]。否则，让 i 继续往后遍历即可。
+
+总结可以发现，我们要处理的是什么情况下需要更新 idx，idx 之前的一定是已经处理完的成功的，然后在 i 的遍历过程中同时更新 idx 和 i。
+
+### 代码
+

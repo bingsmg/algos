@@ -312,7 +312,40 @@ public int lengthOfLIS(int[] nums) {
 
 [673. 最长递增子序列的个数](https://leetcode.cn/problems/number-of-longest-increasing-subsequence/)
 
+我们用动态规划的思路可以解决最长上升子序列的长度，本题目要求最长递增子序列的个数，所以我么在之前的求解思路之上，还需要去记录一个 g[i] 来表示以 nums[i] 结尾的最长上升子序列的最大个数，由此我们可以推理：
 
+- 如果 nums[i] > nums[j]，则 dp[i] = dp[j] + 1; 
+  - 如果 dp[i] < dp[j] + 1，则 g[i] = g[j]
+  - 如果 dp[i] == dp[j] + 1，则 g[i] = g[i] + g[j]
+
+```java
+public int findNumberOfLIS(int[] nums) {
+    int n = nums.length;
+    // dp[i] 表示以 nums[i] 结尾的最长递增子序列长度
+    int[] dp = new int[n];
+    // g[i] 表示以 nums[i] 结尾的最长递增子序列的个数
+    int[] g = new int[n];
+    int maxLen = 0;
+    for (int i = 0; i < n; i++) {
+        dp[i] = g[i] = 1;
+        for (int j = 0; j < i; j++) {
+            if (nums[i] <= nums[j]) continue;
+            if (dp[i] < dp[j] + 1) {
+                dp[i] = dp[j] + 1;
+                g[i] = g[j];
+            } else {
+                g[i] += g[j];
+            }
+        }
+        if (dp[i] > maxLen) maxLen = dp[i];
+    }
+    int ans = 0;
+    for (int i = 0; i < n; i++) {
+        if (dp[i] == maxLen) ans += g[i];
+    }
+    return ans;
+}
+```
 
 ## 维护前缀最大值
 

@@ -343,6 +343,20 @@ private boolean valid(int[] postorder, int pl, int pr) {
 
 递归的时间复杂度如何计算？其实就是 **递归次数*递归过程中的最大基础操作的执行次数**，该递归可以看为 n 次，每次递归需要走一个 while，最差时间复杂度得走 n * (n - 1) * (n - 2)....1 次，所以是 nlog(n)。
 
+### LC108.将有序数组转换为平衡二叉搜索树
+
+[108. 将有序数组转换为二叉搜索树](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/)
+
+有序数组，平衡二叉搜索树，构造，我们可以从数组看出来这是一个需要递归去思考的题目，那么对于二叉树，我们要思考的是什么呢？即如何平衡？root 取数组的哪一个元素，root.left 和 root.right 取哪一个区间，很明显我们要的平衡，因此我们总是取这段数组区间中间的元素作为 root 节点，然后递归去处理即可。递归的基准条件是什么？就是如果这个区间没有元素了，就返回 null。
+
+```java
+private TreeNode build(int[] nums, int l, int r) {
+    if (l > r) return null;
+    int m = l + (r - l) / 2;
+    return new TreeNode(nums[m], build(nums, l, m - 1), build(nums, m + 1, r));
+}
+```
+
 ## 二叉树的路径
 
 整体题目分为两类，一种是关于 root-leaf 之间关系的题目，因为这是一个从上往下的过程，所以使用递归来实现，记录根节点到叶子节点的路径，然后针对题意分别处理；另一种是 node-node，即要通过任意两个节点之间的关系来求出题解，既然是任意节点开始到任意节点，所以我们的主函数就需要去递归，具体的某个节点的处理也需要递归，很多情况需要双重递归，以下题目也按照两种不同的求解过程来梳理题目。

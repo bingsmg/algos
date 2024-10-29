@@ -988,3 +988,51 @@ public ListNode[] splitListToParts(ListNode head, int k) {
     return ans;
 }
 ```
+
+## 面试题02.01.移除重复节点
+
+[面试题 02.01. 移除重复节点](https://leetcode.cn/problems/remove-duplicate-node-lcci/)
+
+### 题目
+
+移除未排序链表中的重复节点，保留最开始最开始出现的节点。
+
+进阶：不使用临时缓冲区。
+
+### 分析
+
+链表和数组有个不一样的地方，就是你要删除，必须 cur.next = cur.next.next，即你遍历到的节点 cur，检测到删除它本身时需要它的前驱节点，因为此我们得判断方式是直接判断 cur.next。重复的性质可以通过哈希表来解决。如果要求不用临时缓冲区，我们用双重循环即可。
+
+### 代码
+
+```java
+public ListNode removeDuplicateNodes(ListNode head) {
+    if (head == null || head.next == null) return head;
+    ListNode cur = head;
+    Set<Integer> set = new HashSet<>();
+    set.add(cur.val);
+    while (cur.next != null) {
+        if (set.contains(cur.next.val)) {
+            cur.next = cur.next.next;
+        } else {
+            set.add(cur.next.val);
+            cur = cur.next;
+        }
+    }
+    return head;
+}
+// 进阶：不使用 hashset
+public ListNode removeDuplicateNodes(ListNode head) {
+    if (head == null || head.next == null) return head;
+    ListNode cur = head;
+    while (cur != null) {
+        ListNode runner = cur;
+        while (runner.next != null) {
+            if (runner.next.val == cur.val) runner.next =runner.next.next;
+            else runner = runner.next;
+        }
+        cur = cur.next;
+    }
+    return head;
+}
+```
