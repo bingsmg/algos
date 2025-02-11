@@ -2,6 +2,26 @@
 
 [toc]
 
+## LC49.字母异位词分组
+
+[49. 字母异位词分组](https://leetcode.cn/problems/group-anagrams/)
+
+给定一个字符串数组，要将字母异位词组合到一起，然后返回结果数组，字母异位词就是重新排列原单词所有字母能得到的所有新单词。
+
+从字母异位词的描述我们就能知道同一对字母异位词的单词，按照字母排序后肯定是一样的，那么我们就很明显的想到和哈希表之间的联系。用同一组字母异位词排序后的新的统一单词作为 key，然后将这一组所有的字母异位词组成的列表作为 value，就实现了该需求，因为哈希表的 key 是唯一的，所以也保证了在这个过程中只需要遍历一次字符串数组即可。
+
+```java
+public List<List<String>> groupAnagrams(String[] strs) {
+    Map<String, List<String>> ht = new HashMap<>(); // ht-hashtable 简写
+    for (String str : strs) {
+        char[] cs = str.toCharArray();
+        Arrays.sort(cs); // 排序保证一组字母异位词同一 key
+        ht.computeIfAbsent(new String(cs), k -> new ArrayList<>()).add(str);
+    }
+    return new ArrayList(ht.values());
+}
+```
+
 ## LC290.单词规律
 
 [290. 单词规律](https://leetcode.cn/problems/word-pattern/)
