@@ -22,6 +22,65 @@ public List<List<String>> groupAnagrams(String[] strs) {
 }
 ```
 
+## LC128.最长连续序列
+
+[128. 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/)
+
+#### 题目描述
+
+给定一个为排序的整数数组 nums，找出数字连续的最长序列的长度。
+
+示例：输入：nums = [100, 4, 200, 1, 3, 2]；输出：4，最长连续数字序列为 [1, 2, 3, 4]
+
+#### 解题思路
+
+理解题意很关键，我们要求最长数字连续序列的长度，首先得理解什么叫数字连续？即 n,n+1,n+2,n+3... 这样的序列。那么我们要求这样一个序列，我们可以直接对原数组 nums 由小到大排序，判断求每个数开头的连续序列的最大长度，在这个过程中更新最大长度。
+
+```java
+public int longestConsecutive(int[] nums) {
+	int n = nums.length;
+    int longestStep = 1;
+    Arrays.sort(nums);
+    int step = 1;
+    for (int i = 0; i < n - 1; i++) {
+        if (nums[i + 1] == nums[i]) {
+            step += 1;
+        } else if (nums[i + 1] == nums[i]) {
+            //... no operate
+        } else {
+            longestStep = Math.max(longestStep, step);
+            step = 1;
+        }
+    }
+    return logestStep;
+}
+```
+
+但是我们知道排序的时间复杂度为 nlogn，那么我们能否借助哈希表进一步提升效率呢？可以，但是在哈希表的处理过程中，我们需要避免重复查找，即如果 num - 1 已经在哈希表存在，我们就不判断 num 开始的连续序列。
+
+```java
+public int longestConsecutive(int[] nums) {
+	int n = nums.length;
+    int longestStep = 1;
+    Set<Integer> ht = new HashSet<>();
+    for (int num : nums) ht.add(num);
+    
+    for (int num : nums) {
+        if (ht.contains(num - 1)) continue;
+        int curNum = num;
+        int step = 1;
+        while (ht.contains(curNum + 1)) {
+            curNum++；
+            step++;
+        }
+        longestStep = Math.max(longestStep, step);
+    }
+    return logestStep;
+}
+```
+
+
+
 ## LC290.单词规律
 
 [290. 单词规律](https://leetcode.cn/problems/word-pattern/)
